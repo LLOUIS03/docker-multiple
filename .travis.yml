@@ -1,0 +1,20 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t llouis/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true llouis/react-test npm test -- --coverate
+
+after_success:
+  - docker build -t llouis/multi-client ./client
+  - docker build -t llouis/multi-nginx ./nginx
+  - docker build -t llouis/multi-server ./server
+  - docker build -t llouis/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push llouis/multi-client
+  - docker push llouis/multi-nginx
+  - docker push llouis/multi-server
+  - docker push llouis/multi-worker
